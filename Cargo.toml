@@ -2,6 +2,9 @@
 name = "regex_quote_fixer"
 version = "0.1.0"
 edition = "2021"
+authors = ["Frank Schwidom"]
+description = "Rewrites grep regexpressions for the use in the regex crate."
+license-file = "LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
