@@ -2,8 +2,7 @@
 #[cfg(test)]
 mod tests {
  use std::{
-  os::fd::FromRawFd,
-  process::{Command, ExitStatus, Stdio},
+  process::{Command, Stdio},
  };
 
  fn rungrep(needle: &str, haystack: &str) -> bool {
@@ -121,6 +120,11 @@ mod tests {
   assert!(rungrep("ab\\{2,3\\}d", "abbd"));
   assert!(runregex("ab{2,3}d", "abbbd"));
   assert!(rungrep("ab\\{2,3\\}d", "abbbd"));
+
+  assert!(runboth(".", "a"));
+
+  assert!(!runboth("\\.", "a"));
+  assert!(runboth("\\.", "."));
  }
 
  #[test]

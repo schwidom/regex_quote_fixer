@@ -1,31 +1,63 @@
+/*!
+This crate allows to translate between regexpressions of different regexpression
+implementations by deciding when to add or remove the metachar '\\' from the regexpression
+string.
+
+Example:
+```rust
+use regex_quote_fixer::RegexQuoteFixer;
+let rqf = RegexQuoteFixer::for_grep();
+
+// as used with grep
+let needle = r#"https\?://\([[:alnum:].]*\.\)\?example\.com/"#;
+
+let needle_fixed = rqf.fix( needle);
+
+assert_eq!( needle_fixed, r#"https?://([[:alnum:].]*\.)?example\.com/"#);
+
+use regex::Regex;
+
+let regex = Regex::new( &needle_fixed).unwrap();
+
+assert!( regex.is_match( r#"https://www.example.com/"#));
+assert!( regex.is_match( r#"http://www.example.com/"#));
+assert!( regex.is_match( r#"http://example.com/"#));
+```
+
+*/
+
+/// holds a lambda which decides which char has to be quoted / unquoted and does the transformation of regex strings
 pub struct RegexQuoteFixer {
  pub lambda: Box<dyn Fn(char) -> bool>,
 }
 
 impl RegexQuoteFixer {
+ /// creates a lambda which returns true if the given character matches one of the vector
  pub fn from_chars(v: Vec<char>) -> Self {
   Self {
    lambda: Box::new(move |x| v.contains(&x)),
   }
  }
 
+ /// creates a lambda which returns true if the given character matches one of the string
  pub fn from_string(s: String) -> Self {
   Self {
    lambda: Box::new(move |x| s.contains(x)),
   }
  }
 
+ /// creates a RegexQuoteFixer which can translate between grep and the regex crate
  pub fn for_grep() -> Self {
   Self::from_string("()?+{}".into())
  }
 
+ /// creates a RegexQuoteFixer which holds this lambda
  pub fn from_lambda(lambda: Box<dyn Fn(char) -> bool>) -> Self {
   Self { lambda }
  }
 
+ /// translates regexpressions between different regexpression implementations by deciding when to add or remove the metachar '\\' from the regexpression string
  pub fn fix(&self, s: &str) -> String {
-  // let special_chars = vec!['(', ')', '?'];
-
   let mut ret = String::new();
 
   struct CharacterClass {
