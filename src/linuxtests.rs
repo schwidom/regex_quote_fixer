@@ -1,9 +1,7 @@
 #[cfg(target_os = "linux")]
 #[cfg(test)]
 mod tests {
- use std::{
-  process::{Command, Stdio},
- };
+ use std::process::{Command, Stdio};
 
  fn rungrep(needle: &str, haystack: &str) -> bool {
   let mut haystack = haystack.to_string();
@@ -159,5 +157,12 @@ mod tests {
   assert!(compare("[()]", "\\"));
   assert!(compare("[?]", "\\"));
   assert!(compare("[+]", "\\"));
+ }
+
+ #[test]
+ fn test_word_boundaries() {
+  assert!(runboth("\\<abc\\>", " abc "));
+  assert!(!runboth("<abc>", " abc "));
+  assert!(compare("\\<abc\\>", " abc "));
  }
 }
