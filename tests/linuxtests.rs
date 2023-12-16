@@ -35,7 +35,7 @@ mod tests {
 
  use regex::Regex;
 
- use crate::RegexQuoteFixer;
+ use regex_quote_fixer::RegexQuoteFixer;
 
  fn runregex(needle: &str, haystack: &str) -> bool {
   let regex = Regex::new(needle).unwrap();
