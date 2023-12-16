@@ -1,6 +1,6 @@
 [package]
 name = "regex_quote_fixer"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 authors = ["Frank Schwidom"]
 description = "Rewrites grep regexpressions for the use in the regex crate."
