@@ -135,25 +135,6 @@ impl RegexQuoteFixer {
      (false, false) => ret.push(char),
     }
 
-    // if '\\' == char { quote_char = !quote_char;}
-
-    // if '\\' == char {
-    //  if quote_char {
-
-    //   quote_char = false;
-    //  } else {
-    //   quote_char = true;
-    //  }
-    // } else {
-    //  if quote_char {
-    // ret.push('\\');
-    // ret.push(char);
-    //   quote_char = false;
-    //  } else {
-    //   quote_char = true;
-    //  }
-    // }
-
     continue;
    }
 
