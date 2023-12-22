@@ -71,7 +71,7 @@ pub enum CharacterClass {
  Ignore,
  /// Treats character classes by excluding it from quote char changes.
  KeepUnaltered,
- /// Treats character classes by excluding it from quote char changes but quotes the quote char like it is in the regex crate.
+ /// Treats character classes by excluding it from quote char changes but quotes the quote char like it is in the regex crate. It is the default value.
  KeepUnalteredButQuoteMeta,
 }
 
@@ -141,19 +141,24 @@ impl RegexQuoteFixer {
      }
 
      // a quote char inside a characterclass has to be quoted for the regex crate
-     match (quote_char, '\\' == char) {
-      (false, true) => quote_char = true,
-      (true, true) => {
-       quote_char = false;
-       ret.push('\\');
+     if self.cc == CharacterClass::KeepUnalteredButQuoteMeta {
+      match (quote_char, '\\' == char) {
+       (false, true) => quote_char = true,
+       (true, true) => {
+        quote_char = false;
+        ret.push('\\');
+       }
+       (true, false) => {
+        quote_char = false;
+        ret.push('\\');
+        ret.push('\\');
+        ret.push(char);
+       }
+       (false, false) => ret.push(char),
       }
-      (true, false) => {
-       quote_char = false;
-       ret.push('\\');
-       ret.push('\\');
-       ret.push(char);
-      }
-      (false, false) => ret.push(char),
+     }
+     else {
+      ret.push(char);
      }
 
      continue;
