@@ -65,6 +65,8 @@ assert_eq!( needle, needle2);
 
 */
 
+pub const DEFAULT_QUOTE_CHAR : char = '\\';
+
 #[derive(PartialEq)]
 pub enum CharacterClass {
  /// Treats character classes like normal regex text.
@@ -87,7 +89,7 @@ impl RegexQuoteFixer {
  pub fn from_chars(v: Vec<char>) -> Self {
   Self {
    lambda: Box::new(move |x| v.contains(&x)),
-   quote_char: '\\',
+   quote_char: DEFAULT_QUOTE_CHAR,
    cc: CharacterClass::KeepUnalteredButQuoteMeta,
   }
  }
@@ -96,7 +98,7 @@ impl RegexQuoteFixer {
  pub fn from_string(s: String) -> Self {
   Self {
    lambda: Box::new(move |x| s.contains(x)),
-   quote_char: '\\',
+   quote_char: DEFAULT_QUOTE_CHAR,
    cc: CharacterClass::KeepUnalteredButQuoteMeta,
   }
  }
@@ -110,7 +112,7 @@ impl RegexQuoteFixer {
  pub fn from_lambda(lambda: Box<dyn Fn(char) -> bool>) -> Self {
   Self {
    lambda,
-   quote_char: '\\',
+   quote_char: DEFAULT_QUOTE_CHAR,
    cc: CharacterClass::KeepUnalteredButQuoteMeta,
   }
  }
@@ -142,16 +144,16 @@ impl RegexQuoteFixer {
 
      // a quote char inside a characterclass has to be quoted for the regex crate
      match self.cc {
-      CharacterClass::KeepUnalteredButQuoteMeta => match (quote_char, '\\' == char) {
+      CharacterClass::KeepUnalteredButQuoteMeta => match (quote_char, self.quote_char == char) {
        (false, true) => quote_char = true,
        (true, true) => {
         quote_char = false;
-        ret.push('\\');
+        ret.push(self.quote_char);
        }
        (true, false) => {
         quote_char = false;
-        ret.push('\\');
-        ret.push('\\');
+        ret.push(self.quote_char);
+        ret.push(self.quote_char);
         ret.push(char);
        }
        (false, false) => ret.push(char),
@@ -167,7 +169,7 @@ impl RegexQuoteFixer {
 
     if char == '[' {
      if quote_char {
-      ret.push('\\');
+      ret.push(self.quote_char);
       ret.push(char);
       quote_char = false;
       continue;
@@ -182,10 +184,10 @@ impl RegexQuoteFixer {
     }
    }
 
-   if char == '\\' {
+   if char == self.quote_char {
     if quote_char {
-     ret.push('\\');
-     ret.push('\\');
+     ret.push(self.quote_char);
+     ret.push(self.quote_char);
      quote_char = false;
      continue;
     } else {
@@ -200,13 +202,13 @@ impl RegexQuoteFixer {
      quote_char = false;
      continue;
     } else {
-     ret.push('\\');
+     ret.push(self.quote_char);
      ret.push(char);
      continue;
     }
    } else {
     if quote_char {
-     ret.push('\\');
+     ret.push(self.quote_char);
      ret.push(char);
      quote_char = false;
      continue;
@@ -217,7 +219,7 @@ impl RegexQuoteFixer {
   }
 
   if quote_char {
-   ret.push('\\');
+   ret.push(self.quote_char);
   }
 
   ret
