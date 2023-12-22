@@ -126,4 +126,18 @@ mod tests {
 
   assert_eq!(needle, needle2);
  }
+
+ #[test]
+ fn test_free_requoting() {
+  let rqf = RegexQuoteFixer {
+   lambda: Box::new(|x| x == 'b'),
+   quote_char: 'c',
+   cc: CharacterClass::Ignore,
+  };
+  let s1 = "abcccbd";
+  let s2 = rqf.fix( s1);
+  assert_eq!( s2, "acbccbd");
+  let s3 = rqf.fix( &s2);
+  assert_eq!( s1, s3);
+ }
 }

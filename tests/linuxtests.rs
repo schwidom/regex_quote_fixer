@@ -165,4 +165,9 @@ mod tests {
   assert!(!runboth("<abc>", " abc "));
   assert!(compare("\\<abc\\>", " abc "));
  }
+
+ #[test]
+ fn test_quote_char_match() {
+  assert!( runboth( "^\\\\$", "\\"));
+ }
 }
