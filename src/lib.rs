@@ -63,17 +63,35 @@ assert_eq!( needle, needle2);
 
 ```
 
+It is also possible to operate with free defined quote chars:
+
+```rust
+use regex_quote_fixer::RegexQuoteFixer;
+use regex_quote_fixer::CharacterClass;
+
+let rqf = RegexQuoteFixer {
+ lambda: Box::new(|x| x == 'b'),
+ quote_char: 'c',
+ cc: CharacterClass::Ignore,
+};
+let s1 = "abcccbd";
+let s2 = rqf.fix( s1);
+assert_eq!( s2, "acbccbd");
+let s3 = rqf.fix( &s2);
+assert_eq!( s1, s3);
+```
 */
 
-pub const DEFAULT_QUOTE_CHAR : char = '\\';
+pub const DEFAULT_QUOTE_CHAR: char = '\\';
 
+/// Defines how character classes are handled.
 #[derive(PartialEq)]
 pub enum CharacterClass {
  /// Treats character classes like normal regex text.
  Ignore,
  /// Treats character classes by excluding it from quote char changes.
  KeepUnaltered,
- /// Treats character classes by excluding it from quote char changes but quotes the quote char like it is in the regex crate. It is the default value.
+ /// Treats character classes by excluding it from quote char changes but quotes the quote char as it is needed in the regex crate. This is the default value.
  KeepUnalteredButQuoteMeta,
 }
 

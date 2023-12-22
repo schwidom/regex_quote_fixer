@@ -1,5 +1,6 @@
 # regex_quote_fixer
-Rewrites grep regexpressions for the use in the regex crate.
+The Regex Quote Fixer rewrites grep regexpressions for the use in the regex crate.
+
 
 This crate allows to translate between regexpressions of different regexpression
 implementations by deciding when to add or remove the metachar '\\' from the regexpression
@@ -65,4 +66,20 @@ assert_eq!( needle, needle2);
 
 ```
 
+It is also possible to operate with free defined quote chars:
 
+```rust
+use regex_quote_fixer::RegexQuoteFixer;
+use regex_quote_fixer::CharacterClass;
+
+let rqf = RegexQuoteFixer {
+ lambda: Box::new(|x| x == 'b'),
+ quote_char: 'c',
+ cc: CharacterClass::Ignore,
+};
+let s1 = "abcccbd";
+let s2 = rqf.fix( s1);
+assert_eq!( s2, "acbccbd");
+let s3 = rqf.fix( &s2);
+assert_eq!( s1, s3);
+```
