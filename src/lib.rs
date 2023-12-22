@@ -65,9 +65,21 @@ assert_eq!( needle, needle2);
 
 */
 
+#[derive(PartialEq)]
+pub enum CharacterClass {
+ /// Treats character classes like normal regex text.
+ Ignore,
+ /// Treats character classes by excluding it from quote char changes.
+ KeepUnaltered,
+ /// Treats character classes by excluding it from quote char changes but quotes the quote char like it is in the regex crate.
+ KeepUnalteredButQuoteMeta,
+}
+
 /// holds a lambda which decides which char has to be quoted / unquoted and does the transformation of regex strings
 pub struct RegexQuoteFixer {
  pub lambda: Box<dyn Fn(char) -> bool>,
+ pub quote_char: char,
+ pub cc: CharacterClass,
 }
 
 impl RegexQuoteFixer {
@@ -75,6 +87,8 @@ impl RegexQuoteFixer {
  pub fn from_chars(v: Vec<char>) -> Self {
   Self {
    lambda: Box::new(move |x| v.contains(&x)),
+   quote_char: '\\',
+   cc: CharacterClass::KeepUnalteredButQuoteMeta,
   }
  }
 
@@ -82,6 +96,8 @@ impl RegexQuoteFixer {
  pub fn from_string(s: String) -> Self {
   Self {
    lambda: Box::new(move |x| s.contains(x)),
+   quote_char: '\\',
+   cc: CharacterClass::KeepUnalteredButQuoteMeta,
   }
  }
 
@@ -92,65 +108,71 @@ impl RegexQuoteFixer {
 
  /// creates a RegexQuoteFixer which holds this lambda
  pub fn from_lambda(lambda: Box<dyn Fn(char) -> bool>) -> Self {
-  Self { lambda }
+  Self {
+   lambda,
+   quote_char: '\\',
+   cc: CharacterClass::KeepUnalteredButQuoteMeta,
+  }
  }
 
  /// translates regexpressions between different regexpression implementations by deciding when to add or remove the metachar '\\' from the regexpression string
  pub fn fix(&self, s: &str) -> String {
   let mut ret = String::new();
 
-  struct CharacterClass {
+  struct CharacterClassState {
    nth_char: usize,
    depth: u8,
   }
 
-  let mut inside_character_class = Option::<CharacterClass>::None;
+  let mut inside_character_class = Option::<CharacterClassState>::None;
   let mut quote_char = false;
 
   for char in s.chars() {
-   if let Some(cc) = &mut inside_character_class {
-    cc.nth_char += 1;
-    match char {
-     ']' if cc.nth_char != 1 => cc.depth -= 1,
-     '[' => cc.depth += 1,
-     _ => {}
-    }
-    if cc.depth == 0 {
-     inside_character_class = None;
+   if self.cc != CharacterClass::Ignore {
+    if let Some(cc) = &mut inside_character_class {
+     cc.nth_char += 1;
+     match char {
+      ']' if cc.nth_char != 1 => cc.depth -= 1,
+      '[' => cc.depth += 1,
+      _ => {}
+     }
+     if cc.depth == 0 {
+      inside_character_class = None;
+     }
+
+     // a quote char inside a characterclass has to be quoted for the regex crate
+     match (quote_char, '\\' == char) {
+      (false, true) => quote_char = true,
+      (true, true) => {
+       quote_char = false;
+       ret.push('\\');
+      }
+      (true, false) => {
+       quote_char = false;
+       ret.push('\\');
+       ret.push('\\');
+       ret.push(char);
+      }
+      (false, false) => ret.push(char),
+     }
+
+     continue;
     }
 
-    // a quote char inside a characterclass has to be quoted for the regex crate
-    match (quote_char, '\\' == char) {
-     (false, true) => quote_char = true,
-     (true, true) => {
-      quote_char = false;
-      ret.push('\\');
-     }
-     (true, false) => {
-      quote_char = false;
-      ret.push('\\');
+    if char == '[' {
+     if quote_char {
       ret.push('\\');
       ret.push(char);
+      quote_char = false;
+      continue;
+     } else {
+      inside_character_class = Some(CharacterClassState {
+       nth_char: 0,
+       depth: 1,
+      });
+      ret.push(char);
+      continue;
      }
-     (false, false) => ret.push(char),
-    }
-
-    continue;
-   }
-
-   if char == '[' {
-    if quote_char {
-     ret.push('\\');
-     ret.push(char);
-     quote_char = false;
-     continue;
-    } else {
-     inside_character_class = Some(CharacterClass {
-      nth_char: 0,
-      depth: 1,
-     });
-     ret.push(char);
-     continue;
     }
    }
 
