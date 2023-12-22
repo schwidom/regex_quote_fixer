@@ -141,8 +141,8 @@ impl RegexQuoteFixer {
      }
 
      // a quote char inside a characterclass has to be quoted for the regex crate
-     if self.cc == CharacterClass::KeepUnalteredButQuoteMeta {
-      match (quote_char, '\\' == char) {
+     match self.cc {
+      CharacterClass::KeepUnalteredButQuoteMeta => match (quote_char, '\\' == char) {
        (false, true) => quote_char = true,
        (true, true) => {
         quote_char = false;
@@ -155,10 +155,11 @@ impl RegexQuoteFixer {
         ret.push(char);
        }
        (false, false) => ret.push(char),
+      },
+      CharacterClass::KeepUnaltered => {
+       ret.push(char);
       }
-     }
-     else {
-      ret.push(char);
+      _ => {}
      }
 
      continue;
