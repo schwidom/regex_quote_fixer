@@ -1,10 +1,11 @@
 [package]
 name = "regex_quote_fixer"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 authors = ["Frank Schwidom"]
 description = "Rewrites grep regexpressions for the use in the regex crate."
 documentation = "https://docs.rs/regex_quote_fixer"
+license = "MIT"
 license-file = "LICENSE"
 homepage = "https://github.com/schwidom/regex_quote_fixer"
 readme = "README.md"
